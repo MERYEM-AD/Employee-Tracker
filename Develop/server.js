@@ -9,8 +9,4 @@ app.use(express.urlencoded({ extended: true }));
 // Function call to initialize app
 init();
 
-
-
-
-
   app.listen(PORT, () => console.log('Now listening'));
