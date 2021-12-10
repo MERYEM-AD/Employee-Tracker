@@ -90,11 +90,11 @@ You might want to use a separate file that contains functions for performing spe
 
 Try to add some additional functionality to your application, such as the ability to do the following:
 
-* Update employee managers.
+* Update employee managers. 
 
-* View employees by manager.
+* View employees by manager. // group by manager 
 
-* View employees by department.
+* View employees by department. // group by dep
 
 * Delete departments, roles, and employees.
 
