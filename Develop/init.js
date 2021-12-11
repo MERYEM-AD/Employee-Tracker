@@ -15,7 +15,7 @@ const listOptions =
       type: 'list',
       name: 'option',
       message: 'Please select an option : ',
-      choices : ['View All Departmnent','View All Roles','View All Employees','add new Department','add new Role','add new Employee','Exit'] 
+      choices : ['View All Departmnent','View All Roles','View All Employees','add new Department','add new Role','add new Employee','update an employee role','Exit'] 
   }];
 
 const init = () =>{
@@ -38,6 +38,7 @@ const init = () =>{
        case 'add new Role' : addNewRole();break;
         ////////////////////////////////////////////////////////////////
        case 'add new Employee' :  addNewEmployee();break;
+       case 'update an employee role' :  updateEmployeeRole();break;
          case 'Exit':console.log('By!!!');db.end();process.exit();
 
         default: console.log( "no selected option");db.end();process.exit();
@@ -122,14 +123,14 @@ const mainRoles = ()=>{
 
   return new Promise((resolve,reject)=>{
 
-    db.query('SELECT role.title as Role , CONCAT(role.salary," ","$") AS Salary ,department.name AS Department FROM role JOIN  department ON role.department_id = department.id;', function (err, results) {
+    db.query('SELECT role.id, role.title as Role , CONCAT(role.salary," ","$") AS Salary ,department.name AS Department FROM role JOIN  department ON role.department_id = department.id;', function (err, results) {
 
       if(results){
 
        resolve(results);
        testCases.length =0;    
        for (let i=0;i<results.length;i++){
-         testCases.push({ Role: results[i].Role, Salary: results[i].Salary,Department:results[i].Department},)
+         testCases.push({ id : results[i].id, Role: results[i].Role, Department:results[i].Department ,Salary: results[i].Salary})
        }
    
 
@@ -238,25 +239,26 @@ const mainEmp= ()=>{
   return new Promise((resolve,reject)=>{
 
      db.query(`
-     SELECT CONCAT(sub.first_name," ",sub.last_name) AS Employee,role.title AS Role , CONCAT(role.salary," ","$") AS Salary,
-        CONCAT(sup.first_name," ",sup.last_name) AS Manager
-     FROM employee sub
-     JOIN role ON sub.role_id = role.id 
-     left JOIN employee sup
-     ON sub.manager_id = sup.id
-     ORDER BY sup.id ;`, function (err, results) {
+     SELECT  sub.id , CONCAT(sub.first_name," ",sub.last_name) AS Employee,role.title AS Role , CONCAT(role.salary," ","$") AS Salary,
+     CONCAT(sup.first_name," ",sup.last_name) AS Manager , department.name as Department
+    FROM employee sub
+    JOIN role ON sub.role_id = role.id 
+    left JOIN employee sup
+    ON sub.manager_id = sup.id
+    JOIN  department ON role.department_id = department.id
+    ORDER BY sup.id ;`, function (err, results) {
 
       if(results){
 
        resolve(results);
        testCases.length =0;    
         for (let i=0;i<results.length;i++){
-        testCases.push({ Employee: results[i].Employee, Role: results[i].Role,Salary:results[i].Salary,Manager:results[i].Manager},)
+        testCases.push({ id : results[i].id, Employee: results[i].Employee, Role: results[i].Role,Department : results[i].Department, Salary:results[i].Salary,Manager:results[i].Manager},)
       }
    
 
 //print
-console.log('\n***************** See all Emoloyees***************************\n');
+console.log('\n***************** See all Employees***************************\n');
 printTable(testCases);
       }
       //err.sqlMessage
@@ -365,6 +367,73 @@ db.query('SELECT id,CONCAT(first_name," ",last_name) AS Employee FROM employee; 
 
   }
 
+
+  /////////////////////////////////////// Update Employee 's role ///////////////////////////////////////////////////
+
+  const updateEmployeeRole = () => {
+
+    
+
+    db.query('SELECT id , title AS role FROM role; ', function (err, results) {
+
+      rolesName.length=0;
+      rolesId.length=0;
+  
+      for (let i=0;i<results.length;i++){
+        rolesName.push(results[i].role);
+        rolesId.push(results[i].id)
+        
+      }
+  
+  });
+  
+  db.query(`SELECT id ,CONCAT(first_name," ",last_name) AS Employee FROM employee ;`, function (err, results) {
+  
+    emlyNames.length=0;
+    emlyId.length=0;
+  
+    for (let i=0;i<results.length;i++){
+      emlyNames.push(results[i].Employee);
+      emlyId.push(results[i].id);
+      
+    }
+  });
+
+  setTimeout(()=>{
+
+    inquirer
+    .prompt([
+
+        {
+            name: "employee",
+            type: "list",
+            message: "Please , Select an employee  ",
+            choices : emlyNames,
+
+        },
+        {
+            name: "role",
+            type: "list",
+            message: "Please the new role for updating ",
+            choices : rolesName,
+        }
+    ]).then(answers => {
+
+      const indexEmpl = emlyNames.indexOf(answers.employee);
+      const indexRole = rolesName.indexOf(answers.role);
+
+          db.query(`
+          UPDATE employee
+          SET role_id = ${rolesId[indexRole]}
+          WHERE employee.id = ${emlyId[indexEmpl]};`);
+
+  init();
+  
+  });
+
+  },3000);
+  
+  }
 
 ////////////////////////////////////////////////////////////////////////////
 
