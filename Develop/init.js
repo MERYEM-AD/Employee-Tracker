@@ -3,7 +3,6 @@ const db = require('./config/connection');
 const { printTable } = require('console-table-printer');
 const testCases =[];
 const ids =[];
-
 const rolesName=[];
 const rolesId=[];
 const emlyNames =[];
@@ -27,28 +26,23 @@ const init = () =>{
       console.log(answers.option)
    
       switch(answers.option){
-        case 'View All Departmnent' : getAllDepartment();break;
-        /////////////////////////////////////////////////////////////
-       case 'View All Roles' :   getAllRoles();break;
-        ///////////////////////////////////////////////////////////
-       case 'View All Employees' :  getAllEmployees();break;
-        ///////////////////////////////////////////////////////////////
-        case 'add new Department' : addNewDepartment();break;
-      //////////////////////////////////////////////////////////////
-       case 'add new Role' : addNewRole();break;
-        ////////////////////////////////////////////////////////////////
-       case 'add new Employee' :  addNewEmployee();break;
-       case 'update an employee role' :  updateEmployeeRole();break;
-         case 'Exit':console.log('By!!!');db.end();process.exit();
-
-        default: console.log( "no selected option");db.end();process.exit();
+      case 'View All Departmnent' : getAllDepartment();break;
+      case 'View All Roles' :   getAllRoles();break;
+      case 'View All Employees' :  getAllEmployees();break;
+      case 'add new Department' : addNewDepartment();break;
+      case 'add new Role' : addNewRole();break;
+      case 'add new Employee' :  addNewEmployee();break;
+      case 'update an employee role' :  updateEmployeeRole();break;
+      case 'Exit':console.log('By!!!');db.end();process.exit();
+      default: console.log( "no selected option");db.end();process.exit();
           }
     });
   
   }
 
-/***************************** View ALL DEPARTMENT ****************************************** */
-  async function getAllDepartment(){
+/************************************************************** View ALL DEPARTMENT *************************************** */
+ 
+async function getAllDepartment(){
    await mainDep().catch((err)=>console.error(err));
    init();
   }
@@ -56,7 +50,6 @@ const init = () =>{
   const mainDep =()=>{
 
     return new Promise((resolve,reject)=>{
-
 
       db.query('SELECT id , name AS Department FROM department ', function (err, results) {
 
@@ -81,7 +74,7 @@ printTable(testCases);
    });})
 }
 
-  //////////////////  Add Department /////////////////////
+                     //////////////////  Add Department /////////////////////
 
   
   const addNewDepartment = () =>{
@@ -106,11 +99,11 @@ printTable(testCases);
 
 
 
-/*********************************************************************** */
+/******************************************************************************************************************************* */
 
 
 
-/*****************************  View ALL Roles ****************************************** */
+/*****************************************************************  View ALL Roles ****************************************************** */
 
 async function getAllRoles(){
   await mainRoles().catch((err)=>console.error(err));
@@ -152,78 +145,65 @@ printTable(testCases);
 }
 
 
-///////////////////////////// Add Role /////////////////////////////////////
+            ///////////////////////////// Add Role /////////////////////////////////////
 
 const  addNewRole= ()=>{
 
+  getdepName();
 
-  db.query('SELECT id , name AS Department FROM department ', function (err, results) {
-
-    testCases.length=0;
-    ids.length=0;
-
-    for (let i=0;i<results.length;i++){
-      testCases.push(results[i].Department);
-      ids.push(results[i].id)
-      
-    }
-
-
-});
-
-
-
-inquirer
-.prompt([
-   {
-       name: "title",
-       type: "input",
-       message: "Please enter the role's title.",
-       validate : function(value){
-         if (value)  return true ; else return 'Try again';
+setTimeout(()=>{inquirer
+  .prompt([
+     {
+         name: "title",
+         type: "input",
+         message: "Please enter the role's title.",
+         validate : function(value){
+           if (value)  return true ; else return 'Try again';
+       }
+  
+     },
+     {
+         name: "salary",
+         type: "input",
+         message: "Please enter the role's salary.",
+         validate : function(value){
+           if (value)  return true ; else return 'Try again';
+       }
+  
+     },
+     {
+         name: "department",
+         type: "list",
+         message: "Please select the department that that role will belongs to :",
+        choices : testCases,
+         validate : function(value){
+           if (value)  return true ; else return 'Try again';
+       }
+  
+  
      }
+  
+  ]).then(answers => {
+  
+  const index = testCases.indexOf(answers.department);
+  
+     db.query(`INSERT INTO role (title, salary,department_id)
+     VALUES ("${answers.title}",${parseInt(answers.salary)},${ids[index]});`);
+  
+     
+  init();
+  })
+  },1000);
 
-   },
-   {
-       name: "salary",
-       type: "input",
-       message: "Please enter the role's salary.",
-       validate : function(value){
-         if (value)  return true ; else return 'Try again';
-     }
-
-   },
-   {
-       name: "department",
-       type: "list",
-       message: "Please select the department that that role will belongs to :",
-      choices : testCases,
-       validate : function(value){
-         if (value)  return true ; else return 'Try again';
-     }
-
-
-   }
-
-]).then(answers => {
-
-const index = testCases.indexOf(answers.department);
-
-   db.query(`INSERT INTO role (title, salary,department_id)
-   VALUES ("${answers.title}",${parseInt(answers.salary)},${ids[index]});`);
-
-   
-init();
-})
 
 }
 
-//////////////////////////////////////////////////////////////////////////////////
+/************************************************************************************************************************************************** */
 
 
 
 
-////////////////////////////////// View All Employees ///////////////////////////////////////////////////
+/********************************************************* View All Employees ***************************************************************/
 
 
 async function getAllEmployees(){
@@ -275,131 +255,81 @@ printTable(testCases);
 
 //////////////////////////////////// Add new Employee ////////////////////////////////////////////////
 
-
-
-
   const addNewEmployee=()=>{
 
-  db.query('SELECT id , title AS role FROM role; ', function (err, results) {
+    getRolesName();
 
-    rolesName.length=0;
-    rolesId.length=0;
+    getEmployName();
 
-    for (let i=0;i<results.length;i++){
-      rolesName.push(results[i].role);
-      rolesId.push(results[i].id)
-      
-    }
-
-});
-
-
-db.query('SELECT id,CONCAT(first_name," ",last_name) AS Employee FROM employee; ', function (err, results) {
-
-  emlyNames.length=0;
-  emlyId.length=0;
-
-  for (let i=0;i<results.length;i++){
-    emlyNames.push(results[i].Employee);
-    emlyId.push(results[i].id)
-    
-  }
-  emlyNames.push("null");
-
-
-
-
-});
-
-
-     
-      
-    inquirer
-    .prompt([
-        {
-            name: "first_name",
-            type: "input",
-            message: "What is the employee's first name?",
-            validate : function(value){
-              if (value)  return true ; else return 'Try again';
-          }
-        },
-        {
-            name: "last_name",
-            type: "input",
-            message: "What is the employee's last name?",
-            validate : function(value){
-              if (value)  return true ; else return 'Try again';
-          }
-        },
-        {
-            name: "role",
-            type: "list",
-            message: "Please select the role 's title ",
-            choices :rolesName,
-            validate : function(value){
-              if (value)  return true ; else return 'Try again';
-          }
-
-        },
-        {
-            name: "manager",
-            type: "list",
-            message: "Please select an employee as a manager",
-            choices :emlyNames,
-        }
-    ]).then(answers => {
-
-      const indexRole = rolesName.indexOf(answers.role);
-      const indexEmpl = emlyNames.indexOf(answers.manager);
-
-      if (emlyId[indexEmpl]===undefined) {emlyId[indexEmpl] = null}
-      console.log(`INSERT INTO employee (first_name,last_name,role_id,manager_id)
-      VALUES ("${answers.first_name}","${answers.last_name}",${rolesId[indexRole]},${emlyId[indexEmpl]});`)
-
-  db.query(`INSERT INTO employee (first_name,last_name,role_id,manager_id)
-  VALUES ("${answers.first_name}","${answers.last_name}",${rolesId[indexRole]},${emlyId[indexEmpl]});`);
-
-
-  init();
+    setTimeout(()=>{ inquirer
+      .prompt([
+          {
+              name: "first_name",
+              type: "input",
+              message: "What is the employee's first name?",
+              validate : function(value){
+                if (value)  return true ; else return 'Try again';
+            }
+          },
+          {
+              name: "last_name",
+              type: "input",
+              message: "What is the employee's last name?",
+              validate : function(value){
+                if (value)  return true ; else return 'Try again';
+            }
+          },
+          {
+              name: "role",
+              type: "list",
+              message: "Please select the role 's title ",
+              choices :rolesName,
+              validate : function(value){
+                if (value)  return true ; else return 'Try again';
+            }
   
-  });
+          },
+          {
+              name: "manager",
+              type: "list",
+              message: "Please select an employee as a manager",
+              choices :emlyNames,
+          }
+      ]).then(answers => {
+  
+        const indexRole = rolesName.indexOf(answers.role);
+        const indexEmpl = emlyNames.indexOf(answers.manager);
+  
+        if (emlyId[indexEmpl]===undefined) {emlyId[indexEmpl] = null}
+        console.log(`INSERT INTO employee (first_name,last_name,role_id,manager_id)
+        VALUES ("${answers.first_name}","${answers.last_name}",${rolesId[indexRole]},${emlyId[indexEmpl]});`)
+  
+    db.query(`INSERT INTO employee (first_name,last_name,role_id,manager_id)
+    VALUES ("${answers.first_name}","${answers.last_name}",${rolesId[indexRole]},${emlyId[indexEmpl]});`);
+  
+  
+    init();
+    
+    });
+  },1000);
 
+   
   }
 
 
-  /////////////////////////////////////// Update Employee 's role ///////////////////////////////////////////////////
+/////////////////////////////////////// Update Employee 's role ///////////////////////////////////////////////////
 
   const updateEmployeeRole = () => {
 
     
 
-    db.query('SELECT id , title AS role FROM role; ', function (err, results) {
-
-      rolesName.length=0;
-      rolesId.length=0;
+getRolesName();
   
-      for (let i=0;i<results.length;i++){
-        rolesName.push(results[i].role);
-        rolesId.push(results[i].id)
-        
-      }
-  
-  });
-  
-  db.query(`SELECT id ,CONCAT(first_name," ",last_name) AS Employee FROM employee ;`, function (err, results) {
-  
-    emlyNames.length=0;
-    emlyId.length=0;
-  
-    for (let i=0;i<results.length;i++){
-      emlyNames.push(results[i].Employee);
-      emlyId.push(results[i].id);
-      
-    }
-  });
+getEmployName();
 
   setTimeout(()=>{
+
+    emlyNames.pop();
 
     inquirer
     .prompt([
@@ -431,11 +361,113 @@ db.query('SELECT id,CONCAT(first_name," ",last_name) AS Employee FROM employee; 
   
   });
 
-  },3000);
+  },1000);
   
   }
 
-////////////////////////////////////////////////////////////////////////////
+
+  /////////////////////////////////////// Update Employee 's manager ///////////////////////////////////////////////////
+
+  const updateEmployeeManager = () => {
+
+    getEmployName();
+    
+      setTimeout(()=>{
+    
+        emlyNames.pop();
+    
+        inquirer
+        .prompt([
+    
+            {
+                name: "employee",
+                type: "list",
+                message: "Please , Select an employee  ",
+                choices : emlyNames,
+    
+            },
+            {
+                name: "role",
+                type: "list",
+                message: "Please the new role for updating ",
+                choices : rolesName,
+            }
+        ]).then(answers => {
+    
+          const indexEmpl = emlyNames.indexOf(answers.employee);
+          const indexRole = rolesName.indexOf(answers.role);
+    
+              db.query(`
+              UPDATE employee
+              SET role_id = ${rolesId[indexRole]}
+              WHERE employee.id = ${emlyId[indexEmpl]};`);
+    
+      init();
+      
+      });
+    
+      },1000);
+      
+      }
+
+/******************************************************************************************************************************************************************** */
+
+
+
+
+function getdepName(){
+   db.query('SELECT id , name AS Department FROM department ', function (err, results) {
+
+  testCases.length=0;
+  ids.length=0;
+
+  for (let i=0;i<results.length;i++){
+    testCases.push(results[i].Department);
+    ids.push(results[i].id)
+    
+  }
+
+
+});
+
+}
+
+function getRolesName (){ 
+   
+  db.query('SELECT id , title AS role FROM role; ', function (err, results) {
+
+    rolesName.length=0;
+    rolesId.length=0;
+
+    for (let i=0;i<results.length;i++){
+      rolesName.push(results[i].role);
+      rolesId.push(results[i].id)
+      
+    }
+
+});
+
+}
+
+function getEmployName (){
+  db.query('SELECT id,CONCAT(first_name," ",last_name) AS Employee FROM employee; ', function (err, results) {
+
+  emlyNames.length=0;
+  emlyId.length=0;
+
+  for (let i=0;i<results.length;i++){
+    emlyNames.push(results[i].Employee);
+    emlyId.push(results[i].id)
+    
+  }
+  emlyNames.push("null");
+
+
+
+
+});
+
+  }
 
 
 
