@@ -8,13 +8,14 @@ const rolesId=[];
 const emlyNames =[];
 const emlyId=[];
  
+const ff=[];
 
 const listOptions = 
  [ {
       type: 'list',
       name: 'option',
       message: 'Please select an option : ',
-      choices : ['View All Departmnent','View All Roles','View All Employees','View All Employees By Manager','View All Employees By Department','add new Department','add new Role','add new Employee','update an employee role','Update employee s manager','Exit'] 
+      choices : ['View All Departmnent','View All Roles','View All Employees','View All Employees By Manager','View All Employees By Department','add new Department','add new Role','add new Employee','update an employee role','Update employee s manager','Delete Department','Delete Role','Delete Employee','Exit'] 
   }];
 
 const init = () =>{
@@ -36,6 +37,9 @@ const init = () =>{
       case 'add new Employee' :  addNewEmployee();break;
       case 'update an employee role' :  updateEmployeeRole();break;
       case 'Update employee s manager': updateEmployeeManager();break;
+      case 'Delete Department':DleteDep(); break;
+      case 'Delete Role':DeleteRole();break;
+      case 'Delete Employee':DeleteEmp(); break;
       case 'Exit':console.log('By!!!');db.end();process.exit();
       default: console.log( "no selected option");db.end();process.exit();
           }
@@ -471,12 +475,11 @@ getEmployName();
 
   const updateEmployeeManager = () => {
 
-  
-    getEmployName();
 
-    setTimeout(()=>{
-      const employeeNull = emlyNames;
+    getEmployName();
   
+    setTimeout(()=>{
+
       emlyNames.pop();
   
       inquirer
@@ -493,23 +496,24 @@ getEmployName();
             name: "employeeUpdated",
             type: "list",
             message: "Please , the Manger: ",
-            choices : employeeNull,
+            choices : ff,
   
         },
       ]).then(answers => {
   
         const indexEmpl = emlyNames.indexOf(answers.employee);
         const indexEmplUpdated = emlyNames.indexOf(answers.employeeUpdated);
+        
+        if (emlyId[indexEmplUpdated]===undefined) {emlyId[indexEmplUpdated] = null}
 
-        if (emlyId[indexEmplUpdated]===undefined) {emlyId[indexEmpl] = null}
-        console.log(`
-        UPDATE employee
+         console.log(`   
+          UPDATE employee
         SET manager_id = ${emlyId[indexEmplUpdated]}
         WHERE employee.id = ${emlyId[indexEmpl]};`)  
-            db.query(`
+            db.query(`   
             UPDATE employee
-            SET manager_id = ${emlyId[indexEmplUpdated]}
-            WHERE employee.id = ${emlyId[indexEmpl]};`);
+          SET manager_id = ${emlyId[indexEmplUpdated]}
+          WHERE employee.id = ${emlyId[indexEmpl]};`);
   
     init();
     
@@ -521,6 +525,127 @@ getEmployName();
 
 /******************************************************************************************************************************************************************** */
 
+
+
+
+/*************************************** DELETE departmnet******************************************************* */
+
+const DleteDep = ()=>{
+
+  getdepName();
+
+  setTimeout(()=>{
+
+    inquirer
+    .prompt([
+
+        {
+            name: "department",
+            type: "list",
+            message: "Please , Select the department that you want to delete :",
+            choices : testCases,
+
+        },
+    ]).then(answers => {
+      const indexdep = testCases.indexOf(answers.department);
+      db.query(`
+      DELETE FROM department where id = ?;`,ids[indexdep]);
+      
+
+  init();
+  
+  });
+
+  },1000);
+  
+  
+
+}
+
+
+
+/*******************************************************************************/
+
+
+
+/*************************************** DELETE role ******************************************************* */
+
+const DeleteRole = ()=>{
+
+  getRolesName();
+  setTimeout(()=>{
+
+    inquirer
+    .prompt([
+
+        {
+            name: "role",
+            type: "list",
+            message: "Please , Select the role that you want to delete :",
+            choices :rolesName,
+
+        },
+    ]).then(answers => {
+      const indexrole = rolesName.indexOf(answers.role);
+      console.log(`
+      DELETE FROM role where id = ?;`,rolesId[indexrole])
+      db.query(`
+      DELETE FROM role where id = ?;`,rolesId[indexrole])
+
+  init();
+  
+  });
+
+  },1000);
+  
+  
+
+}
+
+
+
+/*******************************************************************************/
+
+
+
+/*************************************** DELETE employee ******************************************************* */
+const DeleteEmp = ()=>{
+
+  getEmployName();
+ 
+
+  setTimeout(()=>{
+    emlyNames.pop();
+
+    inquirer
+    .prompt([
+
+        {
+            name: "employee",
+            type: "list",
+            message: "Please , Select the employee that you want to delete :",
+            choices :emlyNames,
+
+        },
+    ]).then(answers => {
+      const indexEmpl = emlyNames.indexOf(answers.employee);
+      db.query(`
+      DELETE FROM employee where id = ?;`,emlyId[indexEmpl])
+      
+
+  init();
+  
+  });
+
+  },1000);
+  
+  
+
+}
+
+
+
+/*******************************************************************************/
 
 
 
@@ -563,13 +688,16 @@ function getEmployName (){
 
   emlyNames.length=0;
   emlyId.length=0;
+  ff.length=0;
 
   for (let i=0;i<results.length;i++){
     emlyNames.push(results[i].Employee);
+    ff.push(results[i].Employee);
     emlyId.push(results[i].id)
     
   }
   emlyNames.push("null");
+  ff.push("null")
 
 
 
@@ -577,8 +705,6 @@ function getEmployName (){
 });
 
   }
-
-
 
 
   module.exports= {init};
