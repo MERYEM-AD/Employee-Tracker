@@ -14,7 +14,7 @@ const listOptions =
       type: 'list',
       name: 'option',
       message: 'Please select an option : ',
-      choices : ['View All Departmnent','View All Roles','View All Employees','add new Department','add new Role','add new Employee','update an employee role','Exit'] 
+      choices : ['View All Departmnent','View All Roles','View All Employees','View All Employees By Manager','View All Employees By Department','add new Department','add new Role','add new Employee','update an employee role','Update employee s manager','Exit'] 
   }];
 
 const init = () =>{
@@ -29,10 +29,13 @@ const init = () =>{
       case 'View All Departmnent' : getAllDepartment();break;
       case 'View All Roles' :   getAllRoles();break;
       case 'View All Employees' :  getAllEmployees();break;
+      case 'View All Employees By Manager':ViewEmplyManger();break;
+      case 'View All Employees By Department':ViewEmplyDep();break;
       case 'add new Department' : addNewDepartment();break;
       case 'add new Role' : addNewRole();break;
       case 'add new Employee' :  addNewEmployee();break;
       case 'update an employee role' :  updateEmployeeRole();break;
+      case 'Update employee s manager': updateEmployeeManager();break;
       case 'Exit':console.log('By!!!');db.end();process.exit();
       default: console.log( "no selected option");db.end();process.exit();
           }
@@ -207,7 +210,6 @@ setTimeout(()=>{inquirer
 
 
 async function getAllEmployees(){
-
 await mainEmp().catch((err)=>console.error(err));
 init();
 
@@ -225,8 +227,10 @@ const mainEmp= ()=>{
     JOIN role ON sub.role_id = role.id 
     left JOIN employee sup
     ON sub.manager_id = sup.id
-    JOIN  department ON role.department_id = department.id
-    ORDER BY sup.id ;`, function (err, results) {
+    JOIN  department ON role.department_id = department.id 
+    ORDER BY department.name ;`, function (err, results) {
+      //ORDER BY department.name
+      //    ORDER BY sup.id 
 
       if(results){
 
@@ -253,6 +257,103 @@ printTable(testCases);
 
 }
 
+
+//////////////////////////////////////// View All Employees By Manager //////////////////////////////////////////
+
+async function ViewEmplyManger(){
+  await mainEmpManger().catch((err)=>console.error(err));
+  init();
+
+}
+
+const mainEmpManger= ()=>{
+  return new Promise((resolve,reject)=>{
+
+     db.query(`
+     SELECT  sub.id , CONCAT(sub.first_name," ",sub.last_name) AS Employee,role.title AS Role , CONCAT(role.salary," ","$") AS Salary,
+     CONCAT(sup.first_name," ",sup.last_name) AS Manager , department.name as Department
+    FROM employee sub
+    JOIN role ON sub.role_id = role.id 
+    left JOIN employee sup
+    ON sub.manager_id = sup.id
+    JOIN  department ON role.department_id = department.id 
+    ORDER BY sup.id ;`, function (err, results) {
+      //ORDER BY department.name
+      //    ORDER BY sup.id 
+
+      if(results){
+
+       resolve(results);
+       testCases.length =0;    
+        for (let i=0;i<results.length;i++){
+        testCases.push({ id : results[i].id, Employee: results[i].Employee, Role: results[i].Role,Department : results[i].Department, Salary:results[i].Salary,Manager:results[i].Manager},)
+      }
+   
+
+//print
+console.log('\n***************** See all Employees***************************\n');
+printTable(testCases);
+      }
+      //err.sqlMessage
+      else { 
+        reject(new Error("Sorry , Server is down,Please come back later "));
+   
+  }
+
+ });
+
+  })
+
+}
+
+
+////////////////////////////////////// View All Employees By Department ///////////////////////////////////////////
+
+async function ViewEmplyDep(){
+  await mainEmDepart().catch((err)=>console.error(err));
+  init();
+}
+
+
+const mainEmDepart= ()=>{
+  return new Promise((resolve,reject)=>{
+
+     db.query(`
+     SELECT  sub.id , CONCAT(sub.first_name," ",sub.last_name) AS Employee,role.title AS Role , CONCAT(role.salary," ","$") AS Salary,
+     CONCAT(sup.first_name," ",sup.last_name) AS Manager , department.name as Department
+    FROM employee sub
+    JOIN role ON sub.role_id = role.id 
+    left JOIN employee sup
+    ON sub.manager_id = sup.id
+    JOIN  department ON role.department_id = department.id 
+    ORDER BY department.name ;`, function (err, results) {
+      //ORDER BY department.name
+      //    ORDER BY sup.id 
+
+      if(results){
+
+       resolve(results);
+       testCases.length =0;    
+        for (let i=0;i<results.length;i++){
+        testCases.push({ id : results[i].id, Employee: results[i].Employee, Role: results[i].Role,Department : results[i].Department, Salary:results[i].Salary,Manager:results[i].Manager},)
+      }
+   
+
+//print
+console.log('\n***************** See all Employees***************************\n');
+printTable(testCases);
+      }
+      //err.sqlMessage
+      else { 
+        reject(new Error("Sorry , Server is down,Please come back later "));
+   
+  }
+
+ });
+
+  })
+
+}
 //////////////////////////////////// Add new Employee ////////////////////////////////////////////////
 
   const addNewEmployee=()=>{
@@ -370,43 +471,51 @@ getEmployName();
 
   const updateEmployeeManager = () => {
 
+  
     getEmployName();
+
+    setTimeout(()=>{
+      const employeeNull = emlyNames;
+  
+      emlyNames.pop();
+  
+      inquirer
+      .prompt([
+  
+          {
+              name: "employee",
+              type: "list",
+              message: "Please , Select an employee for updating the manager  ",
+              choices : emlyNames,
+  
+          },
+          {
+            name: "employeeUpdated",
+            type: "list",
+            message: "Please , the Manger: ",
+            choices : employeeNull,
+  
+        },
+      ]).then(answers => {
+  
+        const indexEmpl = emlyNames.indexOf(answers.employee);
+        const indexEmplUpdated = emlyNames.indexOf(answers.employeeUpdated);
+
+        if (emlyId[indexEmplUpdated]===undefined) {emlyId[indexEmpl] = null}
+        console.log(`
+        UPDATE employee
+        SET manager_id = ${emlyId[indexEmplUpdated]}
+        WHERE employee.id = ${emlyId[indexEmpl]};`)  
+            db.query(`
+            UPDATE employee
+            SET manager_id = ${emlyId[indexEmplUpdated]}
+            WHERE employee.id = ${emlyId[indexEmpl]};`);
+  
+    init();
     
-      setTimeout(()=>{
-    
-        emlyNames.pop();
-    
-        inquirer
-        .prompt([
-    
-            {
-                name: "employee",
-                type: "list",
-                message: "Please , Select an employee  ",
-                choices : emlyNames,
-    
-            },
-            {
-                name: "role",
-                type: "list",
-                message: "Please the new role for updating ",
-                choices : rolesName,
-            }
-        ]).then(answers => {
-    
-          const indexEmpl = emlyNames.indexOf(answers.employee);
-          const indexRole = rolesName.indexOf(answers.role);
-    
-              db.query(`
-              UPDATE employee
-              SET role_id = ${rolesId[indexRole]}
-              WHERE employee.id = ${emlyId[indexEmpl]};`);
-    
-      init();
-      
-      });
-    
-      },1000);
+    });
+  
+    },1000);
       
       }
 
