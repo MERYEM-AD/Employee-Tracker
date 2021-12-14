@@ -1,4 +1,4 @@
-# Employee-Tracker# Project Name :  Employee Tracker
+# Project Name :  Employee Tracker
   ![License: ISC](https://img.shields.io/badge/license-ISC-green)
   ## Description:
   The Application presents an **content management systems (CMS)** interface that manage a company's employee database using Node.js, Inquirer, and MySQL.
